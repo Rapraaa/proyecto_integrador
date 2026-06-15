@@ -22,6 +22,7 @@ El sistema está estrictamente delimitado para usuarios desarrolladores de softw
     *   Análisis de lenguaje corporal mediante reconocimiento facial por cámara web.
     *   Carga y procesamiento automático de archivos PDF (lectura de hojas de vida/CV).
     *   Compilación y ejecución del código ingresado en tiempo real (consola de ejecución activa).
+    *   Traducción automática de respuestas y avisos en diferentes idioma.
 
 ---
 
