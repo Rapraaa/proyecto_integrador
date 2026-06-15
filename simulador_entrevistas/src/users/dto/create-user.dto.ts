@@ -6,7 +6,7 @@ import {
   IsString,
   MinLength,
 } from 'class-validator';
-import { SeniorityLevels } from '../enums/user-roles.enum';
+import { SeniorityLevels } from '../enums/user-seniority.enum';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'El formato del correo es inválido' })
@@ -19,15 +19,15 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  first_name?: string;
+  firstName?: string;
 
   @IsString()
   @IsOptional()
-  last_name?: string;
+  lastName?: string;
 
   @IsEnum(SeniorityLevels, {
     message:
       'El nivel de seniority debe ser: trainee, junior, mid, senior o lead',
   })
-  seniority_level: SeniorityLevels;
+  seniorityLevel: SeniorityLevels;
 }

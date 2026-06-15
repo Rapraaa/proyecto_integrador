@@ -1,11 +1,16 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 import { RoleOptions } from '../enums/user-roles.enum';
 import { SeniorityLevels } from '../enums/user-seniority.enum';
 
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: number;
+  id: string;
 
   @Column({ unique: true, length: 255 })
   email: string;
@@ -26,12 +31,21 @@ export class User {
   })
   role: RoleOptions;
 
-  @Column({ name: 'seniority_levels', type: 'enum', enum: SeniorityLevels })
+  @Column({
+    name: 'seniority_levels',
+    type: 'enum',
+    enum: SeniorityLevels,
+    nullable: true,
+  })
   seniorityLevel: SeniorityLevels;
 
   @Column({ name: 'is_visually_impaired', default: false })
   isVisuallyImpaired: boolean;
 
-  @Column({ name: 'created_at' })
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP', //asi podemos usar funciones nativas de sql
+  })
   createdAt: Date;
 }
