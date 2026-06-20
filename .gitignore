@@ -1,0 +1,32 @@
+.env
+# 1. Dependencias (NUNCA se suben porque se regeneran con 'npm install')
+node_modules/
+/dist/
+/public/
+
+# 2. Variables de entorno y secretos (Seguridad absoluta)
+.env
+.env.production
+.env.development
+.env.local
+*.pem
+*.key
+
+# 3. Archivos del sistema operativo y editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# 4. Logs y archivos temporales de ejecución
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.eslintcache
+.turbo:
