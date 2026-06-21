@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { User } from './users/entities/user.entity';
       }),
     }),
     UsersModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [AppService],
