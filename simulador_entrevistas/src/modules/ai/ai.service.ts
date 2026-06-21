@@ -1,4 +1,8 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 
 interface ContextoEntrevista {
@@ -45,7 +49,10 @@ export class AiService implements OnModuleInit {
       return respuestaIA.trim();
     } catch (error) {
       console.error('Error al comunicarse con el provedor de IA', error);
-      throw new Error('Error al comunicarse con el provedor de IA');
+      //TODO: poner mas errores.
+      throw new ServiceUnavailableException(
+        'El servicio de inteligencia artificial no está disponible temporalmente. Intente más tarde.',
+      );
     }
   }
 }
