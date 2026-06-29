@@ -11,15 +11,24 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario registrado exitosamente con token' })
-  @ApiResponse({ status: 400, description: 'El correo ya existe o datos inválidos' })
+  @ApiResponse({
+    status: 201,
+    description: 'Usuario registrado exitosamente con token',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'El correo ya existe o datos inválidos',
+  })
   register(@Body() createUserDto: CreateUserDto) {
     return this.authService.register(createUserDto);
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Iniciar sesión de usuario' })
-  @ApiResponse({ status: 200, description: 'Login correcto, retorna access_token' })
+  @ApiResponse({
+    status: 200,
+    description: 'Login correcto, retorna access_token',
+  })
   @ApiResponse({ status: 401, description: 'Credenciales inválidas' })
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);

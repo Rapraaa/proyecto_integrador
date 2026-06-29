@@ -15,9 +15,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET') || 'supersecret',
-        signOptions: { 
+        signOptions: {
           // El 'as any' le dice a TypeScript: "Tranquilo, sé que este string tiene el formato correcto"
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '3600s') as any, 
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '3600s') as any,
         },
       }),
       inject: [ConfigService],
