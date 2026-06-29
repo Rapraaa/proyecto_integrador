@@ -8,6 +8,7 @@ import { User } from './modules/users/entities/user.entity';
 import { AiModule } from './modules/ai/ai.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
+import { InterviewsModule } from './modules/interviews/interviews.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { AuthModule } from './modules/auth/auth.module';
     UsersModule,
     AiModule,
     AuthModule,
+    InterviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
