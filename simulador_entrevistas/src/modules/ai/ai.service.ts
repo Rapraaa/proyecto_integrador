@@ -11,6 +11,20 @@ interface ContextoEntrevista {
   tecnologias: string[];
 }
 
+interface MensajeHistorial {
+  sender: string;
+  content: string;
+  code_snippet?: string;
+}
+
+export interface EvaluacionEntrevista {
+  score: number;
+  general_feedback: string;
+  strengths: string[];
+  weaknesses: string[];
+  improvement_tips: string[];
+}
+
 @Injectable()
 export class AiService implements OnModuleInit {
   private ai: GoogleGenerativeAI;
@@ -52,6 +66,75 @@ export class AiService implements OnModuleInit {
       //TODO: poner mas errores.
       throw new ServiceUnavailableException(
         'El servicio de inteligencia artificial no está disponible temporalmente. Intente más tarde.',
+      );
+    }
+  }
+
+  async continuarEntrevista(historial: MensajeHistorial[]): Promise<string> {
+    const conversacion = historial
+      .map((m) => {
+        const quien = m.sender === 'ai' ? 'Entrevistador' : 'Candidato';
+        const codigo = m.code_snippet
+          ? `\n[Código enviado]:\n${m.code_snippet}`
+          : '';
+        return `${quien}: ${m.content}${codigo}`;
+      })
+      .join('\n');
+
+    const prompt = `Esta es la conversación de la entrevista hasta ahora:
+${conversacion}
+
+Basándote en la ÚLTIMA respuesta del candidato, formula la SIGUIENTE pregunta técnica (una sola).
+Si la respuesta fue floja, profundiza o repregunta. No des feedback todavía. Devuelve SOLO la pregunta.`;
+
+    try {
+      const resultado = await this.model.generateContent(prompt);
+      return resultado.response.text().trim();
+    } catch (error) {
+      console.error('Error al continuar la entrevista', error);
+      throw new ServiceUnavailableException(
+        'El servicio de inteligencia artificial no está disponible temporalmente. Intente más tarde.',
+      );
+    }
+  }
+
+  async evaluarEntrevista(
+    historial: MensajeHistorial[],
+  ): Promise<EvaluacionEntrevista> {
+    const conversacion = historial
+      .map(
+        (m) =>
+          `${m.sender === 'ai' ? 'Entrevistador' : 'Candidato'}: ${m.content}`,
+      )
+      .join('\n');
+
+    const prompt = `Evalúa esta entrevista técnica completa y devuelve ÚNICAMENTE un JSON válido,
+sin texto adicional ni markdown, con EXACTAMENTE esta forma:
+{
+  "score": number (de 0 a 100),
+  "general_feedback": string,
+  "strengths": string[],
+  "weaknesses": string[],
+  "improvement_tips": string[]
+}
+
+Conversación:
+${conversacion}`;
+
+    try {
+      const resultado = await this.model.generateContent(prompt);
+      let texto = resultado.response.text().trim();
+
+      texto = texto
+        .replace(/```json/g, '')
+        .replace(/```/g, '')
+        .trim();
+
+      return JSON.parse(texto) as EvaluacionEntrevista;
+    } catch (error) {
+      console.error('Error al evaluar la entrevista', error);
+      throw new ServiceUnavailableException(
+        'No se pudo generar la evaluación. Intenta más tarde.',
       );
     }
   }
