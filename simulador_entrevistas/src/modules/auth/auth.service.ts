@@ -14,11 +14,14 @@ export class AuthService {
 
   async login(loginDto: LoginDto) {
     const user = await this.usersService.findByEmail(loginDto!.email!);
-    
-    if (!user || !(await bcrypt.compare(loginDto!.password!, user!.passwordHash!))) {
+
+    if (
+      !user ||
+      !(await bcrypt.compare(loginDto!.password!, user!.passwordHash!))
+    ) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
-    
+
     const payload = { id: user.id, email: user.email, role: user.role };
     return {
       access_token: this.jwtService.sign(payload),
