@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './users/entities/user.entity';
+import { AiModule } from './modules/ai/ai.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 
@@ -33,6 +34,7 @@ import { AuthModule } from './auth/auth.module';
       }),
     }),
     UsersModule,
+    AiModule,
     AuthModule,
   ],
   controllers: [AppController],
