@@ -1,7 +1,7 @@
 {
   "name": "simulador_entrevistas",
   "version": "0.0.1",
-  "description": "",
+  "description": "El proyecto a nivel técnico es un sitio web con páginas dinámicas con input del usuario y actualizaciones en tiempo real. El sistema será usado por estudiantes de todos los cemestres de la carrera de ingeniería en ciencias de la computación o carreras a fines como tecnología en desarrollo de software. Al finalizar La entrevista simulada se le proporcionará al usuario una calificación, con el fin de que el estudiante que quiere integrarse al entorno laboral adquiera mayor seguridad a la hora de enfrentarse tanto a la parte teórica como a la parte práctica de una entrevista laboral real.",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
