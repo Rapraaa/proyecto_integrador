@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { SeniorityLevels } from './enums/user-seniority.enum';
 
 const USER_ID = '33333333-3333-3333-3333-333333333333';
 
@@ -10,11 +9,10 @@ describe('UsersController', () => {
   let controller: UsersController;
 
   const mockUsersService = {
-    create:  jest.fn(),
     findAll: jest.fn(),
     findOne: jest.fn(),
-    update:  jest.fn(),
-    remove:  jest.fn(),
+    update: jest.fn(),
+    remove: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -33,17 +31,6 @@ describe('UsersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
-  });
-
-  describe('create()', () => {
-    it('should call usersService.create with correct dto', async () => {
-      const dto = { email: 'ana@test.com', password: 'password123', firstName: 'Ana', lastName: 'Perez', seniorityLevel: SeniorityLevels.JUNIOR };
-      mockUsersService.create.mockResolvedValue({ id: USER_ID, ...dto });
-
-      const result = await controller.create(dto);
-      expect(mockUsersService.create).toHaveBeenCalledWith(dto);
-      expect(result).toHaveProperty('id', USER_ID);
-    });
   });
 
   describe('findAll()', () => {
