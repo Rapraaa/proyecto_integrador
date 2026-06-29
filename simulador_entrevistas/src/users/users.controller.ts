@@ -1,29 +1,22 @@
 import {
   Controller,
   Get,
-  Post,
   Body,
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiOperation, ApiResponse, ApiParam, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('users')
 @Controller('users')
+@UseGuards(JwtAuthGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-
-  @Post()
-  @ApiOperation({ summary: 'Crear un nuevo usuario' })
-  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente' })
-  @ApiResponse({ status: 400, description: 'Datos de entrada inválidos' })
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
-  }
 
   @Get()
   @ApiOperation({ summary: 'Obtener todos los usuarios' })

@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -13,6 +12,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
+
   async create(createUserDto: CreateUserDto) {
     const UserExist = await this.userRepository.findOneBy({
       email: createUserDto.email,
@@ -45,6 +45,10 @@ export class UsersService {
     return user;
   }
 
+  async findByEmail(email: string) {
+    return await this.userRepository.findOneBy({ email });
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.findOne(id);
 
@@ -54,7 +58,7 @@ export class UsersService {
       user.passwordHash = hash;
     }
 
-    const { password, ...datosAActualizar } = updateUserDto; //evitamos meter la contraseña sin hashear
+    const { password, ...datosAActualizar } = updateUserDto;
     this.userRepository.merge(user, datosAActualizar);
 
     return await this.userRepository.save(user);
