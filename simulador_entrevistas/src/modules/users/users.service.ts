@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
+import { Role } from '../catalogs/entities/role.entity';
+import { SeniorityLevel } from '../catalogs/entities/seniority-level.entity';
+import { RoleOptions } from './enums/user-roles.enum';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -11,7 +19,22 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly rolesRepository: Repository<Role>,
+    @InjectRepository(SeniorityLevel)
+    private readonly seniorityRepository: Repository<SeniorityLevel>,
   ) {}
+
+  //resuelve el nombre de seniority contra el catálogo (FK)
+  private async resolveSeniority(name: string): Promise<SeniorityLevel> {
+    const seniority = await this.seniorityRepository.findOneBy({ name });
+    if (!seniority) {
+      throw new BadRequestException(
+        `El nivel de seniority "${name}" no existe en el catálogo`,
+      );
+    }
+    return seniority;
+  }
 
   async create(createUserDto: CreateUserDto) {
     const UserExist = await this.userRepository.findOneBy({
@@ -20,6 +43,21 @@ export class UsersService {
     if (UserExist) {
       throw new BadRequestException('El correo electrónico ya está registrado');
     }
+
+    const defaultRole = await this.rolesRepository.findOneBy({
+      name: RoleOptions.USER,
+    });
+    if (!defaultRole) {
+      throw new InternalServerErrorException(
+        'El catálogo de roles está vacío: ejecuta "npm run seed" primero',
+      );
+    }
+
+    let seniority: SeniorityLevel | null = null;
+    if (createUserDto.seniorityLevel) {
+      seniority = await this.resolveSeniority(createUserDto.seniorityLevel);
+    }
+
     const salt = await bcrypt.genSalt();
     const hash = await bcrypt.hash(createUserDto.password, salt);
 
@@ -28,7 +66,8 @@ export class UsersService {
       passwordHash: hash,
       firstName: createUserDto.firstName,
       lastName: createUserDto.lastName,
-      seniorityLevel: createUserDto.seniorityLevel,
+      role: defaultRole,
+      seniorityLevel: seniority,
     });
     return await this.userRepository.save(newUser);
   }
@@ -58,7 +97,12 @@ export class UsersService {
       user.passwordHash = hash;
     }
 
-    const { password, ...datosAActualizar } = updateUserDto;
+    const { password, seniorityLevel, ...datosAActualizar } = updateUserDto;
+
+    if (seniorityLevel) {
+      user.seniorityLevel = await this.resolveSeniority(seniorityLevel);
+    }
+
     this.userRepository.merge(user, datosAActualizar);
 
     return await this.userRepository.save(user);

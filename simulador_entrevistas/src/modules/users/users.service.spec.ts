@@ -9,6 +9,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Role } from '../catalogs/entities/role.entity';
+import { SeniorityLevel } from '../catalogs/entities/seniority-level.entity';
 import { SeniorityLevels } from './enums/user-seniority.enum';
 import * as bcrypt from 'bcrypt';
 
@@ -27,13 +29,27 @@ describe('UsersService', () => {
     remove:   jest.fn(),
   };
 
+  //catálogos: el service resuelve role y seniority contra estas tablas (FK)
+  const mockRolesRepository = {
+    findOneBy: jest.fn(),
+  };
+
+  const mockSeniorityRepository = {
+    findOneBy: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    mockRolesRepository.findOneBy.mockResolvedValue({ id: 'role-1', name: 'user' });
+    mockSeniorityRepository.findOneBy.mockResolvedValue({ id: 'sen-1', name: 'junior' });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
+        { provide: getRepositoryToken(Role), useValue: mockRolesRepository },
+        { provide: getRepositoryToken(SeniorityLevel), useValue: mockSeniorityRepository },
       ],
     }).compile();
 

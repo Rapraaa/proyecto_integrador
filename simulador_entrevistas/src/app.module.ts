@@ -4,11 +4,18 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './modules/users/entities/user.entity';
 import { AiModule } from './modules/ai/ai.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import { InterviewsModule } from './modules/interviews/interviews.module';
+import { CatalogsModule } from './modules/catalogs/catalogs.module';
+import { TechnologiesModule } from './modules/technologies/technologies.module';
+import { SurveysModule } from './modules/surveys/surveys.module';
+import { PromptsModule } from './modules/prompts/prompts.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AchievementsModule } from './modules/achievements/achievements.module';
+import { QuestionBankModule } from './modules/question-bank/question-bank.module';
+import { AiLogsModule } from './modules/ai-logs/ai-logs.module';
 
 @Module({
   imports: [
@@ -24,7 +31,8 @@ import { InterviewsModule } from './modules/interviews/interviews.module';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_NAME'),
-        entities: [User],
+        //carga todas las entidades registradas con forFeature en los módulos
+        autoLoadEntities: true,
         synchronize: true,
       }),
     }),
@@ -38,6 +46,14 @@ import { InterviewsModule } from './modules/interviews/interviews.module';
     AiModule,
     AuthModule,
     InterviewsModule,
+    CatalogsModule,
+    TechnologiesModule,
+    SurveysModule,
+    PromptsModule,
+    AuditModule,
+    AchievementsModule,
+    QuestionBankModule,
+    AiLogsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
