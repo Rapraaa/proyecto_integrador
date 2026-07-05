@@ -81,7 +81,24 @@ describe('AuthService', () => {
         email: 'pato@test.com',
         password: 'correct_password',
       });
+
+      expect(mockUsersService.findByEmail).toHaveBeenCalledWith('pato@test.com');
       expect(result).toEqual({ access_token: 'jwt.token.valido' });
+    });
+
+    it('should call bcrypt.compare with provided password and stored hash', async () => {
+      const mockUser = {
+        id: USER_ID,
+        email: 'pato@test.com',
+        passwordHash: '$2b$10$hash',
+        role: 'user',
+      };
+      mockUsersService.findByEmail.mockResolvedValue(mockUser);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      mockJwtService.sign.mockReturnValue('jwt.token.valido');
+
+      await service.login({ email: 'pato@test.com', password: 'correct_password' });
+      expect(bcrypt.compare).toHaveBeenCalledWith('correct_password', mockUser.passwordHash);
     });
 
     it('should call jwtService.sign with correct payload structure', async () => {
@@ -120,6 +137,40 @@ describe('AuthService', () => {
 
       const result = await service.register(dto);
       expect(result).toEqual({ access_token: 'registro.token' });
+    });
+
+    it('should call jwtService.sign with correct payload on successful registration', async () => {
+      const mockUser = { id: USER_ID, email: 'nuevo@test.com', role: 'user' };
+      mockUsersService.create.mockResolvedValue(mockUser);
+      mockJwtService.sign.mockReturnValue('registro.token');
+
+      const dto = {
+        email: 'nuevo@test.com',
+        password: 'pass123',
+        firstName: 'Domenica',
+        lastName: 'Carrera',
+        seniorityLevel: 'junior' as any,
+      };
+
+      await service.register(dto);
+      expect(mockJwtService.sign).toHaveBeenCalledWith({
+        id: USER_ID,
+        email: 'nuevo@test.com',
+        role: 'user',
+      });
+    });
+
+    it('should throw if usersService.create rejects during registration', async () => {
+      const dto = {
+        email: 'nuevo@test.com',
+        password: 'pass123',
+        firstName: 'Domenica',
+        lastName: 'Carrera',
+        seniorityLevel: 'junior' as any,
+      };
+      mockUsersService.create.mockRejectedValue(new Error('Email already exists'));
+
+      await expect(service.register(dto)).rejects.toThrow('Email already exists');
     });
 
     it('should call usersService.create with the dto', async () => {

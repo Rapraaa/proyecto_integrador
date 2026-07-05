@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { UnauthorizedException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -34,6 +35,15 @@ describe('AuthController', () => {
 
       const result = await controller.login({ email: 'admin@test.com', password: 'pass' });
       expect(result).toEqual({ access_token: 'mi.jwt.token' });
+      expect(mockAuthService.login).toHaveBeenCalledWith({ email: 'admin@test.com', password: 'pass' });
+    });
+
+    it('should throw UnauthorizedException when login fails', async () => {
+      mockAuthService.login.mockRejectedValue(new UnauthorizedException('Credenciales inválidas'));
+
+      await expect(
+        controller.login({ email: 'wrong@test.com', password: 'badpass' }),
+      ).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -51,7 +61,37 @@ describe('AuthController', () => {
       };
 
       const result = await controller.register(dto);
+      expect(mockAuthService.register).toHaveBeenCalledWith(dto);
       expect(result).toEqual({ access_token: 'nuevo.jwt.token' });
+    });
+
+    it('should propagate generic registration errors from authService', async () => {
+      const dto = {
+        email: 'nuevo@test.com',
+        password: 'pass123',
+        firstName: 'John',
+        lastName: 'Doe',
+        seniorityLevel: 'mid' as any,
+      };
+      const error = new Error('Email already exists');
+      mockAuthService.register.mockRejectedValue(error);
+
+      await expect(controller.register(dto)).rejects.toThrow('Email already exists');
+      expect(mockAuthService.register).toHaveBeenCalledWith(dto);
+    });
+
+    it('should throw UnauthorizedException when registration fails unexpectedly', async () => {
+      const dto = {
+        email: 'nuevo@test.com',
+        password: 'pass123',
+        firstName: 'John',
+        lastName: 'Doe',
+        seniorityLevel: 'mid' as any,
+      };
+
+      mockAuthService.register.mockRejectedValue(new UnauthorizedException('No autorizado'));
+
+      await expect(controller.register(dto)).rejects.toThrow(UnauthorizedException);
     });
   });
 });
