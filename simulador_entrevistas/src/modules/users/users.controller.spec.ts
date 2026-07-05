@@ -53,6 +53,14 @@ describe('UsersController', () => {
       expect(mockUsersService.findOne).toHaveBeenCalledWith(USER_ID);
       expect(result).toEqual(mockUser);
     });
+
+    it('should propagate errors from usersService.findOne', async () => {
+      const error = new Error('User not found');
+      mockUsersService.findOne.mockRejectedValue(error);
+
+      await expect(controller.findOne(USER_ID)).rejects.toThrow('User not found');
+      expect(mockUsersService.findOne).toHaveBeenCalledWith(USER_ID);
+    });
   });
 
   describe('update()', () => {
@@ -63,6 +71,15 @@ describe('UsersController', () => {
       const result = await controller.update(USER_ID, updateDto);
       expect(mockUsersService.update).toHaveBeenCalledWith(USER_ID, updateDto);
       expect(result).toHaveProperty('firstName', 'Ana Maria');
+    });
+
+    it('should propagate errors from usersService.update', async () => {
+      const updateDto = { firstName: 'Ana Maria' };
+      const error = new Error('Update failed');
+      mockUsersService.update.mockRejectedValue(error);
+
+      await expect(controller.update(USER_ID, updateDto)).rejects.toThrow('Update failed');
+      expect(mockUsersService.update).toHaveBeenCalledWith(USER_ID, updateDto);
     });
   });
 

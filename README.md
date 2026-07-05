@@ -215,7 +215,28 @@ Incluye descripción de cada endpoint, parámetros, códigos de respuesta y ejem
 
 Colección de **Postman / Thunder Client** incluida en el repositorio con todos los endpoints configurados.
 
+### Ejecutar pruebas unitarias
 ```bash
-# Ejecutar tests unitarios
 npm run test
 ```
+
+### Ejecutar pruebas específicas
+```bash
+npm test -- --runInBand src/modules/auth/auth.service.spec.ts src/modules/auth/auth.controller.spec.ts
+```
+
+### Generar reporte de cobertura
+```bash
+npm run test:cov
+```
+
+El reporte queda en la carpeta `coverage/` y puedes abrirlo con:
+```bash
+coverage/lcov-report/index.html
+```
+
+### Requisitos para las pruebas
+- Node.js 20+
+- npm 10+
+- Dependencias instaladas con `npm install`
+
