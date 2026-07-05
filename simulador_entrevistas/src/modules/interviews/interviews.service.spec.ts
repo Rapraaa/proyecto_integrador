@@ -54,7 +54,9 @@ describe('InterviewsService', () => {
       mockAiService.iniciarEntrevista.mockResolvedValue('Primera pregunta');
       
       const saveMock = jest.fn().mockResolvedValue({ _id: '1', user_id: 'user1' });
+      let createdData: any;
       const MockModel = function(data: any) {
+        createdData = data;
         this.save = saveMock;
       };
       
@@ -75,8 +77,22 @@ describe('InterviewsService', () => {
         nivel: 'junior',
         tecnologias: ['react']
       });
+      expect(createdData).toEqual({
+        user_id: 'user1',
+        config: dto,
+        status: 'in_progress',
+        chat_history: [{ sequence: 1, sender: 'ai', content: 'Primera pregunta' }],
+      });
       expect(saveMock).toHaveBeenCalled();
       expect(res._id).toBe('1');
+    });
+
+    it('should throw NotFoundException if interview does not exist when sending a message', async () => {
+      mockInterviewModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.enviarMensaje('user1', 'id', { content: 'hello' })).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -150,6 +166,14 @@ describe('InterviewsService', () => {
       await expect(service.finalizar('user1', 'id')).rejects.toThrow(BadRequestException);
     });
 
+    it('should throw NotFoundException if interview is not found when finalizing', async () => {
+      mockInterviewModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.finalizar('user1', 'id')).rejects.toThrow(NotFoundException);
+    });
+
     it('should evaluate and set status to completed', async () => {
       const saveMock = jest.fn().mockResolvedValue({ _id: 'id', user_id: 'user1', status: 'completed' });
       const interview = {
@@ -169,7 +193,7 @@ describe('InterviewsService', () => {
 
       const res = await service.finalizar('user1', 'id');
 
-      expect(mockAiService.evaluarEntrevista).toHaveBeenCalled();
+      expect(mockAiService.evaluarEntrevista).toHaveBeenCalledWith(interview.chat_history);
       expect(interview.status).toBe('completed');
       expect(interview.evaluation).toBe('evaluation text');
       expect(saveMock).toHaveBeenCalled();

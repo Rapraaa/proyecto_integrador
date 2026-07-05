@@ -73,5 +73,12 @@ describe('UsersController', () => {
       await controller.remove(USER_ID);
       expect(mockUsersService.remove).toHaveBeenCalledWith(USER_ID);
     });
+
+    it('should propagate errors from usersService.remove', async () => {
+      const error = new Error('User not found');
+      mockUsersService.remove.mockRejectedValue(error);
+
+      await expect(controller.remove(USER_ID)).rejects.toThrow('User not found');
+    });
   });
 });

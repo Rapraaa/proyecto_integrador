@@ -171,6 +171,7 @@ describe('AuthService', () => {
       mockUsersService.create.mockRejectedValue(new Error('Email already exists'));
 
       await expect(service.register(dto)).rejects.toThrow('Email already exists');
+      expect(mockJwtService.sign).not.toHaveBeenCalled();
     });
 
     it('should call usersService.create with the dto', async () => {

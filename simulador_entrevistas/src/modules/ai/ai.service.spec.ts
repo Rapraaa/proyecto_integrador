@@ -1,5 +1,10 @@
 import { ServiceUnavailableException } from '@nestjs/common';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { AiService } from './ai.service';
+
+jest.mock('@google/generative-ai', () => ({
+  GoogleGenerativeAI: jest.fn(),
+}));
 
 describe('AiService', () => {
   let service: AiService;
@@ -26,6 +31,30 @@ describe('AiService', () => {
     expect(service).toBeDefined();
   });
 
+  describe('onModuleInit()', () => {
+    it('should initialize the AI client and model when the API key exists', () => {
+      const mockGetGenerativeModel = jest.fn().mockReturnValue(mockModel);
+      const mockAiClient = { getGenerativeModel: mockGetGenerativeModel };
+      (GoogleGenerativeAI as jest.Mock).mockImplementation(() => mockAiClient);
+      process.env.GEMINI_API_KEY = 'test-key';
+
+      service.onModuleInit();
+
+      expect(GoogleGenerativeAI).toHaveBeenCalledWith('test-key');
+      expect(mockGetGenerativeModel).toHaveBeenCalledWith(
+        expect.objectContaining({ model: 'gemini-2.5-flash' }),
+      );
+      expect((service as any).ai).toBe(mockAiClient);
+      expect((service as any).model).toBe(mockModel);
+    });
+
+    it('should throw when the API key is missing', () => {
+      delete process.env.GEMINI_API_KEY;
+
+      expect(() => service.onModuleInit()).toThrow('Error: API key no configurada');
+    });
+  });
+
   describe('iniciarEntrevista()', () => {
     it('should return the first interview question text', async () => {
       mockModel.generateContent.mockResolvedValue({
@@ -40,7 +69,12 @@ describe('AiService', () => {
         tecnologias: ['nodejs', 'nestjs'],
       });
 
-      expect(mockModel.generateContent).toHaveBeenCalled();
+      expect(mockModel.generateContent).toHaveBeenCalledWith(
+        expect.stringContaining('backend'),
+      );
+      expect(mockModel.generateContent).toHaveBeenCalledWith(
+        expect.stringContaining('nestjs'),
+      );
       expect(result).toBe('¿Cuál es la diferencia entre null y undefined?');
     });
 
@@ -122,6 +156,18 @@ describe('AiService', () => {
 
       expect(result.score).toBe(90);
       expect(result.strengths).toEqual(['Claridad']);
+    });
+
+    it('should throw ServiceUnavailableException when evaluation JSON is invalid', async () => {
+      mockModel.generateContent.mockResolvedValue({
+        response: {
+          text: () => 'respuesta no válida',
+        },
+      });
+
+      await expect(
+        service.evaluarEntrevista([{ sender: 'candidate', content: 'Hola' }] as any),
+      ).rejects.toThrow(ServiceUnavailableException);
     });
 
     it('should throw ServiceUnavailableException when evaluation fails', async () => {

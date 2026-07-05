@@ -68,6 +68,18 @@ describe('UsersService', () => {
 
       expect(result?.passwordHash).toBe(hashedPwd);
       expect(bcrypt.hash).toHaveBeenCalledWith('plaintext', 'salt');
+      expect(mockUserRepository.create).toHaveBeenCalledWith(expect.objectContaining({ email: dto.email, passwordHash: hashedPwd }));
+    });
+
+    it('should throw BadRequestException if repository save fails', async () => {
+      mockUserRepository.findOneBy.mockResolvedValue(null);
+      (bcrypt.genSalt as jest.Mock).mockResolvedValue('salt');
+      (bcrypt.hash as jest.Mock).mockResolvedValue('$2b$10$hashedvalue');
+      mockUserRepository.create.mockReturnValue({});
+      mockUserRepository.save.mockRejectedValue(new Error('DB error'));
+
+      const dto = { email: 'ana@test.com', password: 'plaintext', firstName: 'Ana', lastName: 'Perez', seniorityLevel: SeniorityLevels.JUNIOR };
+      await expect(service.create(dto)).rejects.toThrow('DB error');
     });
   });
 
@@ -96,6 +108,15 @@ describe('UsersService', () => {
       mockUserRepository.findOneBy.mockResolvedValue(null);
       await expect(service.findOne(NOT_FOUND_ID)).rejects.toThrow(NotFoundException);
     });
+
+    it('should return a user by email through findByEmail', async () => {
+      const mockUser = { id: USER_ID, email: 'ana@test.com' };
+      mockUserRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await service.findByEmail('ana@test.com');
+      expect(result).toEqual(mockUser);
+      expect(mockUserRepository.findOneBy).toHaveBeenCalledWith({ email: 'ana@test.com' });
+    });
   });
 
   describe('update()', () => {
@@ -120,6 +141,12 @@ describe('UsersService', () => {
 
       expect(mockUserRepository.merge).toHaveBeenCalledWith(mockUser, updateDto);
       expect(result.firstName).toBe('Ana Maria');
+    });
+
+    it('should throw NotFoundException when updating a missing user', async () => {
+      mockUserRepository.findOneBy.mockResolvedValue(null);
+
+      await expect(service.update(NOT_FOUND_ID, { firstName: 'Nuevo' })).rejects.toThrow(NotFoundException);
     });
   });
 

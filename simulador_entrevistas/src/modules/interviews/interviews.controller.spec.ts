@@ -46,6 +46,15 @@ describe('InterviewsController', () => {
       expect(mockInterviewsService.crear).toHaveBeenCalledWith('user1', dto);
       expect(res).toEqual({ _id: '1' });
     });
+
+    it('should propagate errors from interviewsService.crear', async () => {
+      const dto = { target_role: 'dev', seniority: 'junior', technologies: [] };
+      const error = new Error('Model failed');
+      mockInterviewsService.crear.mockRejectedValue(error);
+
+      await expect(controller.crear(reqMock, dto)).rejects.toThrow('Model failed');
+      expect(mockInterviewsService.crear).toHaveBeenCalledWith('user1', dto);
+    });
   });
 
   describe('enviarMensaje()', () => {
@@ -55,6 +64,14 @@ describe('InterviewsController', () => {
       const res = await controller.enviarMensaje(reqMock, 'id1', dto);
       expect(mockInterviewsService.enviarMensaje).toHaveBeenCalledWith('user1', 'id1', dto);
       expect(res).toEqual({ _id: '1' });
+    });
+
+    it('should propagate errors from interviewsService.enviarMensaje', async () => {
+      const dto = { content: 'hello' };
+      const error = new Error('Interview not found');
+      mockInterviewsService.enviarMensaje.mockRejectedValue(error);
+
+      await expect(controller.enviarMensaje(reqMock, 'id1', dto)).rejects.toThrow('Interview not found');
     });
   });
 

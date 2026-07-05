@@ -45,6 +45,14 @@ describe('AuthController', () => {
         controller.login({ email: 'wrong@test.com', password: 'badpass' }),
       ).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should propagate generic login errors from authService', async () => {
+      const error = new Error('Service unavailable');
+      mockAuthService.login.mockRejectedValue(error);
+
+      await expect(controller.login({ email: 'wrong@test.com', password: 'badpass' })).rejects.toThrow('Service unavailable');
+      expect(mockAuthService.login).toHaveBeenCalledWith({ email: 'wrong@test.com', password: 'badpass' });
+    });
   });
 
   describe('register()', () => {
