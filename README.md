@@ -11,7 +11,7 @@ API REST construida con **NestJS** que simula entrevistas técnicas potenciadas 
   - _[Rahí Ruilova]_
   - _[Carlos Baños]_
   - _[Domenica Carrera]_
-  - _[Renato ]_  
+  - _[Renato Pilamonta]_  
 - **Descripción funcional:**
   Plataforma donde un desarrollador configura una entrevista (rol, seniority, tecnologías), conversa por chat con una IA que actúa como entrevistador técnico, y al finalizar recibe un reporte con puntaje y feedback. Incluye gestión de usuarios con roles, autenticación segura y persistencia híbrida.
 
@@ -151,30 +151,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## 📋 Listado de Endpoints
+## Listado de Endpoints
 
 ### Autenticación (`/auth`)
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| POST | `/auth/register` | Registrar un nuevo usuario | ❌ |
-| POST | `/auth/login` | Iniciar sesión y obtener token JWT | ❌ |
+| POST | `/auth/register` | Registrar un nuevo usuario | No |
+| POST | `/auth/login` | Iniciar sesión y obtener token JWT | No |
 
 ### Usuarios (`/users`) — PostgreSQL
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| GET | `/users` | Listar todos los usuarios | ✅ |
-| GET | `/users/:id` | Obtener un usuario por ID | ✅ |
-| PATCH | `/users/:id` | Actualizar un usuario | ✅ |
-| DELETE | `/users/:id` | Eliminar un usuario | ✅ |
+| GET | `/users` | Listar todos los usuarios | Sí |
+| GET | `/users/:id` | Obtener un usuario por ID | Sí |
+| PATCH | `/users/:id` | Actualizar un usuario | Sí |
+| DELETE | `/users/:id` | Eliminar un usuario | Sí |
 
 ### Entrevistas (`/interviews`) — MongoDB
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| POST | `/interviews` | Crear/iniciar una entrevista (la IA da la 1ª pregunta) | ✅ |
-| POST | `/interviews/:id/messages` | Responder y recibir la siguiente pregunta de la IA | ✅ |
-| POST | `/interviews/:id/finish` | Finalizar y generar el reporte de evaluación | ✅ |
-| GET | `/interviews` | Historial de entrevistas del usuario | ✅ |
-| GET | `/interviews/:id` | Detalle de una entrevista | ✅ |
+| POST | `/interviews` | Crear/iniciar una entrevista (la IA da la 1ª pregunta) | Sí |
+| POST | `/interviews/:id/messages` | Responder y recibir la siguiente pregunta de la IA | Sí |
+| POST | `/interviews/:id/finish` | Finalizar y generar el reporte de evaluación | Sí |
+| GET | `/interviews` | Historial de entrevistas del usuario | Sí |
+| GET | `/interviews/:id` | Detalle de una entrevista | Sí |
 
 ---
 
@@ -211,11 +211,95 @@ Incluye descripción de cada endpoint, parámetros, códigos de respuesta y ejem
 
 ---
 
-##  Pruebas
+## Pruebas Unitarias
 
-Colección de **Postman / Thunder Client** incluida en el repositorio con todos los endpoints configurados.
+El proyecto cuenta con una suite completa de pruebas unitarias implementadas con **Jest** y **@nestjs/testing**.
+
+### Ejecutar las pruebas
 
 ```bash
-# Ejecutar tests unitarios
-npm run test
+cd simulador_entrevistas
+
+# Ejecutar todos los tests unitarios
+npm test
+
+# Ejecutar con reporte de cobertura
+npm run test:cov
+
+# Ejecutar en modo watch (desarrollo)
+npm run test:watch
 ```
+
+### Reporte de cobertura
+
+El reporte se genera en `simulador_entrevistas/coverage/` y puede visualizarse abriendo `coverage/lcov-report/index.html` en el navegador.
+
+La configuración de Jest excluye de la medición de cobertura los archivos que no contienen lógica testeable:
+- `main.ts` (bootstrap de la aplicación)
+- `seeds/**` (scripts de seeding)
+- `**/*.module.ts` (definiciones de módulos — solo configuración)
+- `**/*.entity.ts` (entidades TypeORM — solo decoradores)
+- `**/*.schema.ts` (schemas Mongoose — solo decoradores)
+
+Se requiere un **mínimo de 70% de cobertura** en statements, functions y lines.
+
+### Arquitectura de pruebas
+
+- **Servicios**: se mockean los repositorios (TypeORM `Repository` y Mongoose `Model`) para verificar operaciones CRUD, manejo de errores y casos excepcionales.
+- **Controladores**: se mockean los servicios para verificar que los endpoints delegan correctamente las operaciones.
+- **Autenticación**: se mockean `UsersService`, `JwtService` y `bcrypt` para verificar registro, login, generación de JWT, guards y strategy.
+- **No se usan bases de datos reales** — todo se ejecuta con mocks.
+
+### Inventario de pruebas
+
+#### Pruebas de Servicios (17)
+
+| # | Servicio | Archivo de prueba |
+|---|----------|-------------------|
+| 1 | AppService | `src/app.service.spec.ts` |
+| 2 | AuthService | `src/modules/auth/auth.service.spec.ts` |
+| 3 | UsersService | `src/modules/users/users.service.spec.ts` |
+| 4 | InterviewsService | `src/modules/interviews/interviews.service.spec.ts` |
+| 5 | AiService | `src/modules/ai/ai.service.spec.ts` |
+| 6 | CompaniesService | `src/modules/catalogs/services/companies.service.spec.ts` |
+| 7 | DifficultyLevelsService | `src/modules/catalogs/services/difficulty-levels.service.spec.ts` |
+| 8 | InterviewTypesService | `src/modules/catalogs/services/interview-types.service.spec.ts` |
+| 9 | JobRolesService | `src/modules/catalogs/services/job-roles.service.spec.ts` |
+| 10 | RolesService | `src/modules/catalogs/services/roles.service.spec.ts` |
+| 11 | SeniorityLevelsService | `src/modules/catalogs/services/seniority-levels.service.spec.ts` |
+| 12 | TechCategoriesService | `src/modules/technologies/services/tech-categories.service.spec.ts` |
+| 13 | EvaluationCriteriaService | `src/modules/prompts/services/evaluation-criteria.service.spec.ts` |
+| 14 | AchievementsService | `src/modules/achievements/achievements.service.spec.ts` |
+| 15 | QuestionBankService | `src/modules/question-bank/question-bank.service.spec.ts` |
+| 16 | AiLogsService | `src/modules/ai-logs/ai-logs.service.spec.ts` |
+
+#### Pruebas de Controladores (16)
+
+| # | Controlador | Archivo de prueba |
+|---|-------------|-------------------|
+| 1 | AppController | `src/app.controller.spec.ts` |
+| 2 | AuthController | `src/modules/auth/auth.controller.spec.ts` |
+| 3 | UsersController | `src/modules/users/users.controller.spec.ts` |
+| 4 | InterviewsController | `src/modules/interviews/interviews.controller.spec.ts` |
+| 5 | CompaniesController | `src/modules/catalogs/controllers/companies.controller.spec.ts` |
+| 6 | DifficultyLevelsController | `src/modules/catalogs/controllers/difficulty-levels.controller.spec.ts` |
+| 7 | InterviewTypesController | `src/modules/catalogs/controllers/interview-types.controller.spec.ts` |
+| 8 | JobRolesController | `src/modules/catalogs/controllers/job-roles.controller.spec.ts` |
+| 9 | RolesController | `src/modules/catalogs/controllers/roles.controller.spec.ts` |
+| 10 | SeniorityLevelsController | `src/modules/catalogs/controllers/seniority-levels.controller.spec.ts` |
+| 11 | TechCategoriesController | `src/modules/technologies/controllers/tech-categories.controller.spec.ts` |
+| 12 | EvaluationCriteriaController | `src/modules/prompts/controllers/evaluation-criteria.controller.spec.ts` |
+| 13 | AchievementsController | `src/modules/achievements/achievements.controller.spec.ts` |
+| 14 | QuestionBankController | `src/modules/question-bank/question-bank.controller.spec.ts` |
+| 15 | AiLogsController | `src/modules/ai-logs/ai-logs.controller.spec.ts` |
+
+#### Pruebas del Módulo de Autenticación
+
+| Componente | Archivo de prueba | Casos de prueba |
+|------------|-------------------|-----------------|
+| AuthService | `auth.service.spec.ts` | Login (sin usuario, password incorrecto, éxito, payload correcto), Register (éxito, delegación) |
+| AuthController | `auth.controller.spec.ts` | Login retorna token, Register retorna token |
+| JwtAuthGuard | `guards/jwt-auth.guard.spec.ts` | Definición, extiende AuthGuard('jwt') |
+| RolesGuard | `guards/roles.guard.spec.ts` | Sin roles requeridos, rol correcto, rol incorrecto, usuario undefined |
+| JwtStrategy | `jwt.strategy.spec.ts` | Definición, validate() con payload completo/parcial/vacío |
+| Roles Decorator | `decorators/roles.decorator.spec.ts` | Metadata con un rol, múltiples roles, sin roles |

@@ -71,7 +71,7 @@ describe('AuthService', () => {
         id: USER_ID,
         email: 'pato@test.com',
         passwordHash: '$2b$10$hash',
-        role: 'user',
+        role: { name: 'user' }, //el rol ahora es una FK al catálogo
       };
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -89,7 +89,7 @@ describe('AuthService', () => {
         id: USER_ID,
         email: 'maria@test.com',
         passwordHash: '$2b$10$hash',
-        role: 'user',
+        role: { name: 'user' },
       };
       mockUsersService.findByEmail.mockResolvedValue(mockUser);
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
@@ -106,7 +106,11 @@ describe('AuthService', () => {
 
   describe('register()', () => {
     it('should return an access_token object on successful registration', async () => {
-      const mockUser = { id: USER_ID, email: 'nuevo@test.com', role: 'user' };
+      const mockUser = {
+        id: USER_ID,
+        email: 'nuevo@test.com',
+        role: { name: 'user' },
+      };
       mockUsersService.create.mockResolvedValue(mockUser);
       mockJwtService.sign.mockReturnValue('registro.token');
 

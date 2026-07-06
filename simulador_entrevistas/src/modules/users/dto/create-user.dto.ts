@@ -1,13 +1,11 @@
 import {
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
-import { SeniorityLevels } from '../enums/user-seniority.enum';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateUserDto {
   @ApiProperty({
@@ -36,13 +34,12 @@ export class CreateUserDto {
   @IsOptional()
   lastName?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     example: 'mid',
-    description: 'Nivel de seniority del usuario',
+    description:
+      'Nivel de seniority del usuario (debe existir en el catálogo seniority_levels)',
   })
-  @IsEnum(SeniorityLevels, {
-    message:
-      'El nivel de seniority debe ser: trainee, junior, mid, senior o lead',
-  })
-  seniorityLevel: SeniorityLevels;
+  @IsString()
+  @IsOptional()
+  seniorityLevel?: string;
 }

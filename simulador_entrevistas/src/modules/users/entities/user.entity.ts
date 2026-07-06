@@ -3,9 +3,11 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
-import { RoleOptions } from '../enums/user-roles.enum';
-import { SeniorityLevels } from '../enums/user-seniority.enum';
+import { Role } from '../../catalogs/entities/role.entity';
+import { SeniorityLevel } from '../../catalogs/entities/seniority-level.entity';
 
 @Entity('users')
 export class User {
@@ -24,20 +26,20 @@ export class User {
   @Column({ name: 'last_name', length: 255, nullable: true })
   lastName: string;
 
-  @Column({
-    type: 'enum',
-    enum: RoleOptions,
-    default: RoleOptions.USER,
-  })
-  role: RoleOptions;
+  //FK al catálogo de roles (antes era un enum). eager para que el login
+  //siempre tenga el rol disponible al firmar el JWT.
+  //nullable a nivel de DB para no romper filas existentes con synchronize.
+  @ManyToOne(() => Role, { eager: true, nullable: true })
+  @JoinColumn({ name: 'role_id' })
+  role: Role | null;
 
-  @Column({
-    name: 'seniority_levels',
-    type: 'enum',
-    enum: SeniorityLevels,
-    nullable: true,
-  })
-  seniorityLevel: SeniorityLevels;
+  //FK al catálogo de seniority (antes era un enum)
+  @ManyToOne(() => SeniorityLevel, { eager: true, nullable: true })
+  @JoinColumn({ name: 'seniority_level_id' })
+  seniorityLevel: SeniorityLevel | null;
+
+  @Column({ name: 'is_blocked', default: false })
+  isBlocked: boolean;
 
   @Column({ name: 'is_visually_impaired', default: false })
   isVisuallyImpaired: boolean;

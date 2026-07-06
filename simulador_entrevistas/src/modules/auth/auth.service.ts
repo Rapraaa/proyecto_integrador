@@ -22,7 +22,8 @@ export class AuthService {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
-    const payload = { id: user.id, email: user.email, role: user.role };
+    //el rol ahora es una FK al catálogo: en el JWT viaja solo el nombre
+    const payload = { id: user.id, email: user.email, role: user.role?.name };
     return {
       access_token: this.jwtService.sign(payload),
     };
@@ -30,7 +31,7 @@ export class AuthService {
 
   async register(createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role?.name };
     return {
       access_token: this.jwtService.sign(payload),
     };

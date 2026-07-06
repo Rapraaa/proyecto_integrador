@@ -6,9 +6,11 @@ jest.mock('bcrypt', () => ({
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './entities/user.entity';
+import { Role } from '../catalogs/entities/role.entity';
+import { SeniorityLevel } from '../catalogs/entities/seniority-level.entity';
 import { SeniorityLevels } from './enums/user-seniority.enum';
 import * as bcrypt from 'bcrypt';
 
@@ -27,13 +29,26 @@ describe('UsersService', () => {
     remove:   jest.fn(),
   };
 
+  const mockRolesRepository = {
+    findOneBy: jest.fn(),
+  };
+
+  const mockSeniorityRepository = {
+    findOneBy: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+
+    mockRolesRepository.findOneBy.mockResolvedValue({ id: 'role-1', name: 'user' });
+    mockSeniorityRepository.findOneBy.mockResolvedValue({ id: 'sen-1', name: 'junior' });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
         { provide: getRepositoryToken(User), useValue: mockUserRepository },
+        { provide: getRepositoryToken(Role), useValue: mockRolesRepository },
+        { provide: getRepositoryToken(SeniorityLevel), useValue: mockSeniorityRepository },
       ],
     }).compile();
 
@@ -69,6 +84,25 @@ describe('UsersService', () => {
       expect(result?.passwordHash).toBe(hashedPwd);
       expect(bcrypt.hash).toHaveBeenCalledWith('plaintext', 'salt');
     });
+
+    it('should throw InternalServerErrorException when roles catalog is empty', async () => {
+      mockUserRepository.findOneBy.mockResolvedValue(null);
+      mockRolesRepository.findOneBy.mockResolvedValue(null);
+
+      const dto = { email: 'new@test.com', password: 'plaintext', firstName: 'Ana', lastName: 'Perez', seniorityLevel: SeniorityLevels.JUNIOR };
+
+      await expect(service.create(dto)).rejects.toThrow(InternalServerErrorException);
+    });
+
+    it('should throw BadRequestException when seniority level does not exist in catalog', async () => {
+      mockUserRepository.findOneBy.mockResolvedValue(null);
+      mockRolesRepository.findOneBy.mockResolvedValue({ id: 'role-1', name: 'user' });
+      mockSeniorityRepository.findOneBy.mockResolvedValue(null);
+
+      const dto = { email: 'new@test.com', password: 'plaintext', firstName: 'Ana', lastName: 'Perez', seniorityLevel: 'nonexistent' as any };
+
+      await expect(service.create(dto)).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('findAll()', () => {
@@ -98,6 +132,25 @@ describe('UsersService', () => {
     });
   });
 
+  describe('findByEmail()', () => {
+    it('should return a user when email exists', async () => {
+      const mockUser = { id: USER_ID, email: 'ana@test.com' };
+      mockUserRepository.findOneBy.mockResolvedValue(mockUser);
+
+      const result = await service.findByEmail('ana@test.com');
+      expect(result).toEqual(mockUser);
+      expect(mockUserRepository.findOneBy).toHaveBeenCalledWith({ email: 'ana@test.com' });
+    });
+
+    it('should return null when email does not exist', async () => {
+      mockUserRepository.findOneBy.mockResolvedValue(null);
+
+      const result = await service.findByEmail('nobody@test.com');
+      expect(result).toBeNull();
+      expect(mockUserRepository.findOneBy).toHaveBeenCalledWith({ email: 'nobody@test.com' });
+    });
+  });
+
   describe('update()', () => {
     it('should call bcrypt.hash if password is being updated', async () => {
       const mockUser = { id: USER_ID, email: 'ana@test.com', passwordHash: '$2b$10$oldhash' };
@@ -120,6 +173,29 @@ describe('UsersService', () => {
 
       expect(mockUserRepository.merge).toHaveBeenCalledWith(mockUser, updateDto);
       expect(result.firstName).toBe('Ana Maria');
+    });
+
+    it('should resolve and update seniorityLevel when provided', async () => {
+      const mockUser = { id: USER_ID, email: 'ana@test.com', firstName: 'Ana', seniorityLevel: null };
+      const resolvedSeniority = { id: 'sen-2', name: 'senior' };
+      mockUserRepository.findOneBy.mockResolvedValue(mockUser);
+      mockSeniorityRepository.findOneBy.mockResolvedValue(resolvedSeniority);
+      mockUserRepository.save.mockResolvedValue({ ...mockUser, seniorityLevel: resolvedSeniority });
+
+      const result = await service.update(USER_ID, { seniorityLevel: SeniorityLevels.SENIOR } as any);
+
+      expect(mockSeniorityRepository.findOneBy).toHaveBeenCalledWith({ name: SeniorityLevels.SENIOR });
+      expect(result.seniorityLevel).toEqual(resolvedSeniority);
+    });
+
+    it('should throw BadRequestException when updating with non-existent seniority', async () => {
+      const mockUser = { id: USER_ID, email: 'ana@test.com', firstName: 'Ana' };
+      mockUserRepository.findOneBy.mockResolvedValue(mockUser);
+      mockSeniorityRepository.findOneBy.mockResolvedValue(null);
+
+      await expect(
+        service.update(USER_ID, { seniorityLevel: 'nonexistent' as any }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
