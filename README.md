@@ -11,7 +11,7 @@ API REST construida con **NestJS** que simula entrevistas técnicas potenciadas 
   - _[Rahí Ruilova]_
   - _[Carlos Baños]_
   - _[Domenica Carrera]_
-  - _[Renato ]_  
+  - _[Renato Pilamonta]_  
 - **Descripción funcional:**
   Plataforma donde un desarrollador configura una entrevista (rol, seniority, tecnologías), conversa por chat con una IA que actúa como entrevistador técnico, y al finalizar recibe un reporte con puntaje y feedback. Incluye gestión de usuarios con roles, autenticación segura y persistencia híbrida.
 
