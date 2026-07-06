@@ -29,7 +29,6 @@ describe('UsersService', () => {
     remove:   jest.fn(),
   };
 
-  //catálogos: el service resuelve role y seniority contra estas tablas (FK)
   const mockRolesRepository = {
     findOneBy: jest.fn(),
   };

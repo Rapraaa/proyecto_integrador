@@ -151,30 +151,30 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 ---
 
-## 📋 Listado de Endpoints
+## Listado de Endpoints
 
 ### Autenticación (`/auth`)
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| POST | `/auth/register` | Registrar un nuevo usuario | ❌ |
-| POST | `/auth/login` | Iniciar sesión y obtener token JWT | ❌ |
+| POST | `/auth/register` | Registrar un nuevo usuario | No |
+| POST | `/auth/login` | Iniciar sesión y obtener token JWT | No |
 
 ### Usuarios (`/users`) — PostgreSQL
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| GET | `/users` | Listar todos los usuarios | ✅ |
-| GET | `/users/:id` | Obtener un usuario por ID | ✅ |
-| PATCH | `/users/:id` | Actualizar un usuario | ✅ |
-| DELETE | `/users/:id` | Eliminar un usuario | ✅ |
+| GET | `/users` | Listar todos los usuarios | Sí |
+| GET | `/users/:id` | Obtener un usuario por ID | Sí |
+| PATCH | `/users/:id` | Actualizar un usuario | Sí |
+| DELETE | `/users/:id` | Eliminar un usuario | Sí |
 
 ### Entrevistas (`/interviews`) — MongoDB
 | Método | Ruta | Descripción | Auth |
 |---|---|---|---|
-| POST | `/interviews` | Crear/iniciar una entrevista (la IA da la 1ª pregunta) | ✅ |
-| POST | `/interviews/:id/messages` | Responder y recibir la siguiente pregunta de la IA | ✅ |
-| POST | `/interviews/:id/finish` | Finalizar y generar el reporte de evaluación | ✅ |
-| GET | `/interviews` | Historial de entrevistas del usuario | ✅ |
-| GET | `/interviews/:id` | Detalle de una entrevista | ✅ |
+| POST | `/interviews` | Crear/iniciar una entrevista (la IA da la 1ª pregunta) | Sí |
+| POST | `/interviews/:id/messages` | Responder y recibir la siguiente pregunta de la IA | Sí |
+| POST | `/interviews/:id/finish` | Finalizar y generar el reporte de evaluación | Sí |
+| GET | `/interviews` | Historial de entrevistas del usuario | Sí |
+| GET | `/interviews/:id` | Detalle de una entrevista | Sí |
 
 ---
 
@@ -211,7 +211,7 @@ Incluye descripción de cada endpoint, parámetros, códigos de respuesta y ejem
 
 ---
 
-## 🧪 Pruebas Unitarias
+## Pruebas Unitarias
 
 El proyecto cuenta con una suite completa de pruebas unitarias implementadas con **Jest** y **@nestjs/testing**.
 
