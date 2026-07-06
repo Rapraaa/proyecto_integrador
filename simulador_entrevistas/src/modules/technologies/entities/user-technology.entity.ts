@@ -30,7 +30,7 @@ export class UserTechnology {
   technology: Technology;
 
   //nivel autodeclarado: basic | intermediate | advanced
-  @Column({ length: 20, nullable: true })
+  @Column({ type: 'varchar', length: 20, nullable: true })
   level: string | null;
 
   @CreateDateColumn({

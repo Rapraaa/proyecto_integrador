@@ -5,6 +5,6 @@ import { BaseCatalogEntity } from './base-catalog.entity';
 //entrevista (startup, banca, big tech...) vía prompt.
 @Entity('companies')
 export class Company extends BaseCatalogEntity {
-  @Column({ length: 100, nullable: true })
+  @Column({ type: 'varchar', length: 100, nullable: true })
   industry: string | null;
 }

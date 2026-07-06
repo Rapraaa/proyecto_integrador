@@ -5,6 +5,6 @@ import { BaseCatalogEntity } from '../../catalogs/entities/base-catalog.entity';
 @Entity('achievements')
 export class Achievement extends BaseCatalogEntity {
   //nombre de icono o emoji para el frontend
-  @Column({ length: 50, nullable: true })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   icon: string | null;
 }
