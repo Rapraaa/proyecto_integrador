@@ -6,6 +6,15 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // CORS: permite que el frontend (otro origen) consuma la API desde el navegador.
+  // origin: true refleja el origen de la petición (sirve para localhost en dev
+  // y para el frontend desplegado). En producción real se fijaría una lista.
+  app.enableCors({
+    origin: true,
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
+
   const config = new DocumentBuilder()
     .setTitle('API del simulador de entrevistas')
     .setDescription(
