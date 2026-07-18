@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "Simulador de Entrevistas - API",
+    "description": "Colección completa del backend NestJS (PostgreSQL + MongoDB).\n\n## Cómo usar\n1. Selecciona el entorno o define la variable `base_url` (ej: http://localhost:3000).\n2. Ejecuta `Auth > Login` o `Auth > Register`: el `access_token` se guarda AUTOMÁTICAMENTE en la variable `{{jwt}}` (revisa la pestaña Scripts de cada request).\n3. Las rutas protegidas usan `{{jwt}}` en el header Authorization.\n4. Recuerda correr `npm run seed` antes de probar, para que los catálogos tengan datos.\n\nLos GET de catálogos son públicos; POST/PATCH/DELETE requieren token de ADMIN.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000", "type": "string" },
+    { "key": "jwt", "value": "", "type": "string" },
+    { "key": "interview_id", "value": "", "type": "string" },
+    { "key": "user_id", "value": "", "type": "string" },
+    { "key": "question_id", "value": "", "type": "string" },
+    { "key": "catalog_id", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health / Swagger",
+      "item": [
+        {
+          "name": "GET / (health)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/", "host": ["{{base_url}}"], "path": [""] }
+          }
+        },
+        {
+          "name": "GET /api/docs (Swagger UI)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{base_url}}/api/docs", "host": ["{{base_url}}"], "path": ["api", "docs"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('jwt', res.access_token);",
+                  "  console.log('Token guardado en {{jwt}}');",
+                  "}",
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"seniorityLevel\": \"mid\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/register", "host": ["{{base_url}}"], "path": ["auth", "register"] }
+          }
+        },
+        {
+          "name": "POST /auth/login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.access_token) {",
+                  "  pm.collectionVariables.set('jwt', res.access_token);",
+                  "  console.log('Token guardado en {{jwt}}');",
+                  "}",
+                  "pm.test('status 200/201', () => pm.expect(pm.response.code).to.be.oneOf([200, 201]));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        },
+        {
+          "name": "POST /auth/login (credenciales inválidas -> 401)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nuevo@test.com\",\n  \"password\": \"clave-incorrecta\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/auth/login", "host": ["{{base_url}}"], "path": ["auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (JWT)",
+      "item": [
+        {
+          "name": "GET /users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/users", "host": ["{{base_url}}"], "path": ["users"] }
+          }
+        },
+        {
+          "name": "GET /users/:id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] }
+          }
+        },
+        {
+          "name": "PATCH /users/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"firstName\": \"Nombre Actualizado\"\n}" },
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] }
+          }
+        },
+        {
+          "name": "DELETE /users/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/users/{{user_id}}", "host": ["{{base_url}}"], "path": ["users", "{{user_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Interviews (JWT)",
+      "item": [
+        {
+          "name": "POST /interviews (crear/iniciar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res._id) pm.collectionVariables.set('interview_id', res._id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"interview_type\": \"technical\",\n  \"target_role\": \"backend\",\n  \"seniority\": \"Senior\",\n  \"technologies\": [\"Node.js\", \"NestJS\"]\n}"
+            },
+            "url": { "raw": "{{base_url}}/interviews", "host": ["{{base_url}}"], "path": ["interviews"] }
+          }
+        },
+        {
+          "name": "POST /interviews/:id/messages (responder)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Mi respuesta a la pregunta del entrevistador.\",\n  \"code_snippet\": \"function suma(a, b) { return a + b; }\"\n}"
+            },
+            "url": { "raw": "{{base_url}}/interviews/{{interview_id}}/messages", "host": ["{{base_url}}"], "path": ["interviews", "{{interview_id}}", "messages"] }
+          }
+        },
+        {
+          "name": "POST /interviews/:id/finish (generar reporte)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/interviews/{{interview_id}}/finish", "host": ["{{base_url}}"], "path": ["interviews", "{{interview_id}}", "finish"] }
+          }
+        },
+        {
+          "name": "GET /interviews (historial)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/interviews", "host": ["{{base_url}}"], "path": ["interviews"] }
+          }
+        },
+        {
+          "name": "GET /interviews/:id (detalle)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/interviews/{{interview_id}}", "host": ["{{base_url}}"], "path": ["interviews", "{{interview_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Question Bank (JWT / write admin)",
+      "item": [
+        {
+          "name": "GET /question-bank (con filtros)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": {
+              "raw": "{{base_url}}/question-bank?page=1&limit=10&technology=JavaScript&difficulty=medium",
+              "host": ["{{base_url}}"],
+              "path": ["question-bank"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "technology", "value": "JavaScript" },
+                { "key": "difficulty", "value": "medium" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /question-bank/:id",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/question-bank/{{question_id}}", "host": ["{{base_url}}"], "path": ["question-bank", "{{question_id}}"] }
+          }
+        },
+        {
+          "name": "POST /question-bank (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res._id) pm.collectionVariables.set('question_id', res._id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enunciado\": \"¿Qué es un closure en JavaScript?\",\n  \"interview_type\": \"theoretical\",\n  \"technology\": \"JavaScript\",\n  \"difficulty\": \"medium\",\n  \"respuesta_modelo\": \"Una función que recuerda su ámbito léxico.\",\n  \"tags\": [\"async\", \"scope\"],\n  \"activo\": true\n}"
+            },
+            "url": { "raw": "{{base_url}}/question-bank", "host": ["{{base_url}}"], "path": ["question-bank"] }
+          }
+        },
+        {
+          "name": "PATCH /question-bank/:id (admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{jwt}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"difficulty\": \"hard\"\n}" },
+            "url": { "raw": "{{base_url}}/question-bank/{{question_id}}", "host": ["{{base_url}}"], "path": ["question-bank", "{{question_id}}"] }
+          }
+        },
+        {
+          "name": "DELETE /question-bank/:id (admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": { "raw": "{{base_url}}/question-bank/{{question_id}}", "host": ["{{base_url}}"], "path": ["question-bank", "{{question_id}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI Logs (admin)",
+      "item": [
+        {
+          "name": "GET /ai-logs",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }],
+            "url": {
+              "raw": "{{base_url}}/ai-logs?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["ai-logs"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catálogos - roles",
+      "item": [
+        {
+          "name": "GET /catalogs/roles (público)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/roles?page=1&limit=10", "host": ["{{base_url}}"], "path": ["catalogs", "roles"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] } }
+        },
+        {
+          "name": "GET /catalogs/roles/:id (público)",
+          "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "roles", "{{catalog_id}}"] } }
+        },
+        {
+          "name": "POST /catalogs/roles (admin)",
+          "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"moderator\",\n  \"description\": \"Rol de moderación\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/roles", "host": ["{{base_url}}"], "path": ["catalogs", "roles"] } }
+        },
+        {
+          "name": "PATCH /catalogs/roles/:id (admin)",
+          "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Descripción actualizada\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "roles", "{{catalog_id}}"] } }
+        },
+        {
+          "name": "DELETE /catalogs/roles/:id (admin)",
+          "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "roles", "{{catalog_id}}"] } }
+        }
+      ]
+    },
+    {
+      "name": "Catálogos - seniority-levels",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/seniority-levels", "host": ["{{base_url}}"], "path": ["catalogs", "seniority-levels"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/seniority-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "seniority-levels", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"staff\",\n  \"description\": \"Nivel staff\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/seniority-levels", "host": ["{{base_url}}"], "path": ["catalogs", "seniority-levels"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/seniority-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "seniority-levels", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/seniority-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "seniority-levels", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - job-roles",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/job-roles", "host": ["{{base_url}}"], "path": ["catalogs", "job-roles"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/job-roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "job-roles", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"qa\",\n  \"description\": \"Quality Assurance\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/job-roles", "host": ["{{base_url}}"], "path": ["catalogs", "job-roles"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" }, "url": { "raw": "{{base_url}}/catalogs/job-roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "job-roles", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/job-roles/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "job-roles", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - interview-types",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/interview-types", "host": ["{{base_url}}"], "path": ["catalogs", "interview-types"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/interview-types/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "interview-types", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"behavioral\",\n  \"description\": \"Entrevista de comportamiento\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/interview-types", "host": ["{{base_url}}"], "path": ["catalogs", "interview-types"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/interview-types/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "interview-types", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/interview-types/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "interview-types", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - difficulty-levels",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/difficulty-levels", "host": ["{{base_url}}"], "path": ["catalogs", "difficulty-levels"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/difficulty-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "difficulty-levels", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"expert\",\n  \"description\": \"Dificultad experta\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/difficulty-levels", "host": ["{{base_url}}"], "path": ["catalogs", "difficulty-levels"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/difficulty-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "difficulty-levels", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/difficulty-levels/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "difficulty-levels", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - companies",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/companies", "host": ["{{base_url}}"], "path": ["catalogs", "companies"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/catalogs/companies/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "companies", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mi Empresa\",\n  \"description\": \"Empresa objetivo de práctica\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/companies", "host": ["{{base_url}}"], "path": ["catalogs", "companies"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/catalogs/companies/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "companies", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/catalogs/companies/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["catalogs", "companies", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - tech-categories",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/tech-categories", "host": ["{{base_url}}"], "path": ["tech-categories"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/tech-categories/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["tech-categories", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"cloud\",\n  \"description\": \"Servicios en la nube\"\n}" }, "url": { "raw": "{{base_url}}/tech-categories", "host": ["{{base_url}}"], "path": ["tech-categories"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}" }, "url": { "raw": "{{base_url}}/tech-categories/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["tech-categories", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/tech-categories/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["tech-categories", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - achievements",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/achievements", "host": ["{{base_url}}"], "path": ["achievements"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/achievements/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["achievements", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"racha_10\",\n  \"description\": \"Diez entrevistas seguidas\"\n}" }, "url": { "raw": "{{base_url}}/achievements", "host": ["{{base_url}}"], "path": ["achievements"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/achievements/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["achievements", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/achievements/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["achievements", "{{catalog_id}}"] } } }
+      ]
+    },
+    {
+      "name": "Catálogos - evaluation-criteria",
+      "item": [
+        { "name": "GET (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/evaluation-criteria", "host": ["{{base_url}}"], "path": ["evaluation-criteria"] } } },
+        { "name": "GET /:id (público)", "request": { "method": "GET", "header": [], "url": { "raw": "{{base_url}}/evaluation-criteria/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["evaluation-criteria", "{{catalog_id}}"] } } },
+        { "name": "POST (admin)", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"name\": \"escalabilidad\",\n  \"description\": \"Evalúa el diseño escalable\"\n}" }, "url": { "raw": "{{base_url}}/evaluation-criteria", "host": ["{{base_url}}"], "path": ["evaluation-criteria"] } } },
+        { "name": "PATCH /:id (admin)", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"description\": \"Actualizado\"\n}" }, "url": { "raw": "{{base_url}}/evaluation-criteria/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["evaluation-criteria", "{{catalog_id}}"] } } },
+        { "name": "DELETE /:id (admin)", "request": { "method": "DELETE", "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}" }], "url": { "raw": "{{base_url}}/evaluation-criteria/{{catalog_id}}", "host": ["{{base_url}}"], "path": ["evaluation-criteria", "{{catalog_id}}"] } } }
+      ]
+    }
+  ]
+}
