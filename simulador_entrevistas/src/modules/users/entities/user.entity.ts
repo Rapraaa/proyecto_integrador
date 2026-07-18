@@ -6,6 +6,7 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Role } from '../../catalogs/entities/role.entity';
 import { SeniorityLevel } from '../../catalogs/entities/seniority-level.entity';
 
@@ -17,6 +18,7 @@ export class User {
   @Column({ unique: true, length: 255 })
   email: string;
 
+  @Exclude() //nunca se serializa en las respuestas HTTP
   @Column({ name: 'password_hash', length: 255 }) //En SQL se usa snake_case, en JavaScriot se usa camelCase
   passwordHash: string;
 
