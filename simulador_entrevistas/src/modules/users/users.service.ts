@@ -112,4 +112,17 @@ export class UsersService {
     const user = await this.findOne(id);
     return await this.userRepository.remove(user);
   }
+
+  //Cambia el rol de un usuario resolviendo el nombre contra el catálogo (FK).
+  async changeRole(id: string, roleName: string) {
+    const user = await this.findOne(id);
+    const role = await this.rolesRepository.findOneBy({ name: roleName });
+    if (!role) {
+      throw new BadRequestException(
+        `El rol "${roleName}" no existe en el catálogo`,
+      );
+    }
+    user.role = role;
+    return await this.userRepository.save(user);
+  }
 }

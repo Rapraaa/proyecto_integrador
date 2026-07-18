@@ -9,8 +9,18 @@ import {
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiOperation, ApiResponse, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ChangeRoleDto } from './dto/change-role.dto';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { RoleOptions } from './enums/user-roles.enum';
 
 @ApiTags('users')
 @Controller('users')
@@ -52,6 +62,18 @@ export class UsersController {
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.update(id, updateUserDto);
+  }
+
+  @Patch(':id/role')
+  @UseGuards(RolesGuard)
+  @Roles(RoleOptions.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Cambiar el rol de un usuario (solo admin)' })
+  @ApiParam({ name: 'id', description: 'ID del usuario a promover/degradar' })
+  @ApiResponse({ status: 200, description: 'Rol actualizado exitosamente' })
+  @ApiResponse({ status: 403, description: 'Requiere rol de administrador' })
+  cambiarRol(@Param('id') id: string, @Body() dto: ChangeRoleDto) {
+    return this.usersService.changeRole(id, dto.role);
   }
 
   @Delete(':id')
