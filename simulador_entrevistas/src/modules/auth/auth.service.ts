@@ -36,4 +36,21 @@ export class AuthService {
       access_token: this.jwtService.sign(payload),
     };
   }
+
+  //Login con Google: si el correo no existe, se crea el usuario (rol 'user').
+  async validateGoogleUser(data: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    picture?: string;
+  }) {
+    let user = await this.usersService.findByEmail(data.email);
+    if (!user) {
+      user = await this.usersService.createFromGoogle(data);
+    }
+    const payload = { id: user.id, email: user.email, role: user.role?.name };
+    return {
+      access_token: this.jwtService.sign(payload),
+    };
+  }
 }
