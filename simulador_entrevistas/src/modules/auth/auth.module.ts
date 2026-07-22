@@ -5,6 +5,7 @@ import { UsersModule } from '../users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
+import { obtenerJwtSecret } from './jwt-secret';
 import { GoogleStrategy } from './google.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -18,7 +19,7 @@ import { RefreshToken } from './entities/refresh-token.entity';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET') || 'supersecret',
+        secret: obtenerJwtSecret(config),
         signOptions: {
           // El 'as any' le dice a TypeScript: "Tranquilo, sé que este string tiene el formato correcto"
           expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '3600s') as any,

@@ -1,14 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
 
+  const mockConfigService = {
+    get: jest.fn(() => 'K9x2mQ7vLpR4tYw8NbHc3ZaJ5eFgD6sU1oIkMnBvCxZq'),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtStrategy],
+      providers: [
+        JwtStrategy,
+        { provide: ConfigService, useValue: mockConfigService },
+      ],
     }).compile();
 
     strategy = module.get<JwtStrategy>(JwtStrategy);
