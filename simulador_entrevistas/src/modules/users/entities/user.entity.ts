@@ -28,6 +28,10 @@ export class User {
   @Column({ name: 'last_name', length: 255, nullable: true })
   lastName: string;
 
+  //Foto de perfil: URL o data URL en base64 (por eso 'text', sin límite de 255).
+  @Column({ name: 'profile_picture', type: 'text', nullable: true })
+  profilePicture: string | null;
+
   //FK al catálogo de roles (antes era un enum). eager para que el login
   //siempre tenga el rol disponible al firmar el JWT.
   //nullable a nivel de DB para no romper filas existentes con synchronize.

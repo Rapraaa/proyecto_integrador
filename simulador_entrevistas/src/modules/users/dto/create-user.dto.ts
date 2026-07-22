@@ -42,4 +42,11 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   seniorityLevel?: string;
+
+  @ApiPropertyOptional({
+    description: 'Foto de perfil (URL o imagen en base64)',
+  })
+  @IsString()
+  @IsOptional()
+  profilePicture?: string;
 }
