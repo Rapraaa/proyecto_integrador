@@ -6,9 +6,10 @@ import { User } from './entities/user.entity';
 import { Role } from '../catalogs/entities/role.entity';
 import { SeniorityLevel } from '../catalogs/entities/seniority-level.entity';
 import { AdminBootstrapService } from './admin-bootstrap.service';
+import { AuditModule } from '../audit/audit.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Role, SeniorityLevel])],
+  imports: [TypeOrmModule.forFeature([User, Role, SeniorityLevel]), AuditModule],
   controllers: [UsersController],
   providers: [UsersService, AdminBootstrapService],
   exports: [UsersService],

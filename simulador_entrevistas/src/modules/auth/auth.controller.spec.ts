@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('AuthController', () => {
   let controller: AuthController;
@@ -10,6 +11,10 @@ describe('AuthController', () => {
     register: jest.fn(),
   };
 
+  const mockConfigService = {
+    get: jest.fn(() => 'http://localhost:5173'),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
@@ -17,6 +22,7 @@ describe('AuthController', () => {
       controllers: [AuthController],
       providers: [
         { provide: AuthService, useValue: mockAuthService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 

@@ -25,6 +25,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RoleOptions } from './enums/user-roles.enum';
+import { AuditService } from '../audit/services/audit.service';
+import { AuditAction } from '../audit/enums/audit-action.enum';
 
 interface RequestConUsuario {
   user: { id: string; email: string; role: string };
@@ -36,7 +38,10 @@ interface RequestConUsuario {
 @UseGuards(JwtAuthGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly auditService: AuditService,
+  ) {}
 
   //Verifica que quien pide sea el dueño del recurso o un administrador.
   private verificarPropioOAdmin(req: RequestConUsuario, id: string) {
@@ -88,8 +93,19 @@ export class UsersController {
   @ApiParam({ name: 'id', description: 'ID del usuario a promover/degradar' })
   @ApiResponse({ status: 200, description: 'Rol actualizado exitosamente' })
   @ApiResponse({ status: 403, description: 'Requiere rol de administrador' })
-  cambiarRol(@Param('id') id: string, @Body() dto: ChangeRoleDto) {
-    return this.usersService.changeRole(id, dto.role);
+  async cambiarRol(
+    @Req() req: RequestConUsuario,
+    @Param('id') id: string,
+    @Body() dto: ChangeRoleDto,
+  ) {
+    const usuario = await this.usersService.changeRole(id, dto.role);
+    await this.auditService.registrar({
+      adminId: req.user.id,
+      targetUserId: id,
+      action: AuditAction.ROLE_CHANGED,
+      reason: `Rol cambiado a "${dto.role}"`,
+    });
+    return usuario;
   }
 
   @Delete(':id')
