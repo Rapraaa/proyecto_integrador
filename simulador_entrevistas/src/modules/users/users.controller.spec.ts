@@ -49,7 +49,8 @@ describe('UsersController', () => {
       const mockUser = { id: USER_ID, email: 'ana@test.com' };
       mockUsersService.findOne.mockResolvedValue(mockUser);
 
-      const result = await controller.findOne(USER_ID);
+      const req = { user: { id: USER_ID, email: 'ana@test.com', role: 'user' } };
+      const result = await controller.findOne(req, USER_ID);
       expect(mockUsersService.findOne).toHaveBeenCalledWith(USER_ID);
       expect(result).toEqual(mockUser);
     });
@@ -60,7 +61,8 @@ describe('UsersController', () => {
       const updateDto = { firstName: 'Ana Maria' };
       mockUsersService.update.mockResolvedValue({ id: USER_ID, ...updateDto });
 
-      const result = await controller.update(USER_ID, updateDto);
+      const req = { user: { id: USER_ID, email: 'ana@test.com', role: 'user' } };
+      const result = await controller.update(req, USER_ID, updateDto);
       expect(mockUsersService.update).toHaveBeenCalledWith(USER_ID, updateDto);
       expect(result).toHaveProperty('firstName', 'Ana Maria');
     });
