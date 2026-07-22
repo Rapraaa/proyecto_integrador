@@ -12,6 +12,7 @@ import { User } from './entities/user.entity';
 import { Role } from '../catalogs/entities/role.entity';
 import { SeniorityLevel } from '../catalogs/entities/seniority-level.entity';
 import { RoleOptions } from './enums/user-roles.enum';
+import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -82,6 +83,36 @@ export class UsersService {
       throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
     }
     return user;
+  }
+
+  //Crea un usuario a partir del perfil de Google (sin contraseña real).
+  async createFromGoogle(data: {
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    picture?: string;
+  }) {
+    const defaultRole = await this.rolesRepository.findOneBy({
+      name: RoleOptions.USER,
+    });
+    if (!defaultRole) {
+      throw new InternalServerErrorException(
+        'El catálogo de roles está vacío: ejecuta "npm run seed" primero',
+      );
+    }
+
+    const salt = await bcrypt.genSalt();
+    const passwordHash = await bcrypt.hash(randomBytes(32).toString('hex'), salt);
+
+    const newUser = this.userRepository.create({
+      email: data.email,
+      passwordHash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      profilePicture: data.picture ?? null,
+      role: defaultRole,
+    });
+    return await this.userRepository.save(newUser);
   }
 
   async findByEmail(email: string) {
