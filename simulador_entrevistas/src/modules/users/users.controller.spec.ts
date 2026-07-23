@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuditService } from '../audit/services/audit.service';
 
 const USER_ID = '33333333-3333-3333-3333-333333333333';
 
@@ -15,12 +16,19 @@ describe('UsersController', () => {
     remove: jest.fn(),
   };
 
+  const mockAuditService = {
+    registrar: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [{ provide: UsersService, useValue: mockUsersService }],
+      providers: [
+        { provide: UsersService, useValue: mockUsersService },
+        { provide: AuditService, useValue: mockAuditService },
+      ],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true }) // Simula que el Guard siempre permite el paso en las pruebas
